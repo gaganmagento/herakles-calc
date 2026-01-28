@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TTC Discount Calculator (HT / VAT / EXO)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .box {
+      background: #fff;
+      padding: 20px;
+      border-radius: 6px;
+      max-width: 800px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input {
+      width: 200px;
+      padding: 6px;
+      margin-top: 4px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 20px;
+      background: #eef3f7;
+      padding: 15px;
+      border-radius: 6px;
+    }
+    .explanation {
+      margin-top: 15px;
+      background: #fff;
+      padding: 15px;
+      border-left: 4px solid #007acc;
+    }
+    .row {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Discount Calculator (TTC based)</h1>
+
+  <div class="box">
+    <label>HT Amount (€)</label>
+    <input type="number" id="ht" value="363.64" step="0.01">
+
+    <label>VAT Rate (%)</label>
+    <input type="number" id="vatRate" value="10" step="0.01">
+
+    <label>EXO Amount (€)</label>
+    <input type="number" id="exo" value="50" step="0.01">
+
+    <label>Discount (%)</label>
+    <input type="number" id="discount" value="10" step="0.01">
+
+    <button onclick="calculate()">Calculate</button>
+
+    <div id="output" class="result" style="display:none;"></div>
+  </div>
+
+<script>
+function round(value) {
+  return Math.round(value * 100) / 100;
+}
+
+function calculate() {
+  const htInput = parseFloat(document.getElementById('ht').value) || 0;
+  const vatRate = parseFloat(document.getElementById('vatRate').value) || 0;
+  const exo = parseFloat(document.getElementById('exo').value) || 0;
+  const discountRate = parseFloat(document.getElementById('discount').value) || 0;
+
+  const vatAmount = round(htInput * vatRate / 100);
+  const ttcBefore = round(htInput + vatAmount + exo);
+
+  const discountValue = round(ttcBefore * discountRate / 100);
+  const ttcAfter = round(ttcBefore - discountValue);
+
+  let newHT = 0;
+  let newVAT = 0;
+  let newEXO = exo;
+
+  const taxableTotalAfter = ttcAfter - exo;
+
+  if (htInput > 0 && vatRate > 0) {
+    newHT = round(taxableTotalAfter / (1 + vatRate / 100));
+    newVAT = round(taxableTotalAfter - newHT);
+  }
+
+  const explanation = `
+    <div class="explanation">
+      <strong>Explanation:</strong><br><br>
+
+      1. VAT is calculated from HT:<br>
+      VAT = HT × VAT rate = ${htInput} × ${vatRate}% = ${vatAmount} €<br><br>
+
+      2. TTC before discount:<br>
+      HT + VAT + EXO = ${htInput} + ${vatAmount} + ${exo} = ${ttcBefore} €<br><br>
+
+      3. Discount is applied on TTC:<br>
+      ${discountRate}% of ${ttcBefore} = ${discountValue} €<br>
+      TTC after discount = ${ttcAfter} €<br><br>
+
+      4. EXO amount stays fixed (not taxable):<br>
+      EXO = ${exo} €<br><br>
+
+      5. Remaining amount (${taxableTotalAfter} €) is split back into HT and VAT proportionally.<br>
+    </div>
+  `;
+
+
+  document.getElementById('output').style.display = 'block';
+  document.getElementById('output').innerHTML = `
+    <div class="row"><strong>TTC before discount:</strong> ${ttcBefore} €</div>
+    <div class="row"><strong>Discount:</strong> -${discountValue} €</div>
+    <div class="row"><strong>TTC after discount:</strong> ${ttcAfter} €</div>
+    <hr>
+    <div class="row"><strong>HT:</strong> ${newHT} €</div>
+    <div class="row"><strong>VAT:</strong> ${newVAT} €</div>
+    <div class="row"><strong>EXO:</strong> ${newEXO} €</div>
+    ${explanation}
+  `;
+}
+</script>
+
+</body>
+</html>
